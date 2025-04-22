@@ -1,7 +1,5 @@
 # Smart_Clock_Project_with_Arduino_nano
 
-# Smart Clock System
-
 ## Description
 An Arduino-based smart clock system that combines multiple functionalities like real-time clock, environmental monitoring, reminders, alarms, and battery management — all displayed on an LCD interface.
 
