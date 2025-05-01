@@ -22,7 +22,7 @@
 // Constants
 #define MAX_BATTERY_VOLTAGE 4.2  // Max voltage (fully charged battery)
 #define MIN_BATTERY_VOLTAGE 3.0  // Min voltage (fully discharged)
-#define LOW_BATTERY_THRESHOLD 21 // Battery % threshold for LED warning
+#define LOW_BATTERY_THRESHOLD 26 // Battery % threshold for LED warning
 #define TIME_DISPLAY_DELAY 5000  // Delay for time/date screen
 #define TEMP_DISPLAY_DELAY 3000  // Delay for temp/humidity screen
 #define BATT_DISPLAY_DELAY 2000  // Delay for battery volt and %
@@ -52,6 +52,7 @@ int setNightLightvalue = 0;
 int timerMilliseconds = 0;
 bool timerActive = false;
 bool alarmActive = false;
+bool nightLightActive = false;
 char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 // Function prototypes
 void displayStartupAnimation();
@@ -301,7 +302,7 @@ void handleLowBattery(int batteryPercentage) {
     period = "PM";
   }
 
-  if (batteryPercentage < LOW_BATTERY_THRESHOLD && batteryPercentage > 5) {
+  if (batteryPercentage < LOW_BATTERY_THRESHOLD && batteryPercentage > 15) {
     for (int i = 0; i < 5; i++) {
       digitalWrite(A2, HIGH);
       digitalWrite(VIBRATION_PIN, HIGH);
@@ -315,7 +316,7 @@ void handleLowBattery(int batteryPercentage) {
     digitalWrite(A2, LOW);
   }
 
-  while (batteryPercentage <= 5) {
+  while (batteryPercentage <= 15) {
     float batteryVoltage = analogRead(BATTERY_PIN) * (5.0 / 1023.0) * 2;
     batteryPercentage = map(batteryVoltage * 1000, MIN_BATTERY_VOLTAGE * 1000, MAX_BATTERY_VOLTAGE * 1000, 0, 100);
     batteryPercentage = constrain(batteryPercentage, 0, 100);
@@ -1008,14 +1009,58 @@ void displayLDRvalue(){
 }
 
 void ledFlash(){
-  int i = 0;
-  digitalWrite(RESET_BUTTON_LED,HIGH);
-  while(digitalRead(ALARM_RESET_PIN) != LOW && i < 120) {
-   digitalWrite(NIGHT_LIGHT, HIGH);  // Turn the LED on
-   delay(100);              // Wait for 500ms
-   digitalWrite(NIGHT_LIGHT, LOW);   // Turn the LED off
-   delay(100);
-   i=i+1;
- }
- digitalWrite(RESET_BUTTON_LED,LOW);
+  while(digitalRead(ALARM_RESET_PIN) != LOW) {
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("R TO LED FLASHING");
+    lcd.setCursor(0, 1);
+    lcd.print("L TO LED ON/OFF");
+    digitalWrite(RESET_BUTTON_LED,HIGH);
+    digitalWrite(HOU_BUTTON_LED, HIGH);
+    digitalWrite(MINUTE_BUTTON_LED, HIGH);
+    if(digitalRead(ALARM_HOU_PIN) != LOW){
+      int i = 0;
+      digitalWrite(RESET_BUTTON_LED,HIGH);
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("LED FLASHING");
+      delay(1000);
+      while(digitalRead(ALARM_RESET_PIN) != LOW && i < 240) { 
+       lcd.setCursor(0, 1);
+       lcd.print(i);
+       digitalWrite(NIGHT_LIGHT, HIGH);  // Turn the LED on
+       delay(100);              // Wait for 500ms
+       digitalWrite(NIGHT_LIGHT, LOW);   // Turn the LED off
+       delay(100);
+       i=i+1;
+      }
+      delay(1000);
+    }
+    if(digitalRead(ALARM_MIN_PIN) != LOW){
+      int i = 0;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      lcd.print("LED ON/OFF");
+      delay(1000);
+      while(digitalRead(ALARM_RESET_PIN) != LOW && i < 240){   
+       if(digitalRead(NIGHT_LIGHT) == LOW && digitalRead(ALARM_MIN_PIN) == LOW){
+         digitalWrite(NIGHT_LIGHT, HIGH);  // Turn the LED on
+         lcd.clear();
+         lcd.setCursor(0, 0);
+         lcd.print("LED ON");
+         delay(1000);
+        }    
+       if(digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(NIGHT_LIGHT) == HIGH){
+         lcd.clear();
+         lcd.setCursor(0, 0);
+         lcd.print("LED OFF");
+         delay(1000);
+         digitalWrite(NIGHT_LIGHT, LOW);  // Turn the LED off
+        }
+       i=i+1;
+       delay(100);
+      }
+    }
+    digitalWrite(RESET_BUTTON_LED,LOW);
+  }
 }
