@@ -52,7 +52,7 @@ int setNightLightvalue = 0;
 int timerMilliseconds = 0;
 bool timerActive = false;
 bool alarmActive = false;
-bool nightLightActive = false;
+bool nightLightActive = true;
 char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 // Function prototypes
 void displayStartupAnimation();
