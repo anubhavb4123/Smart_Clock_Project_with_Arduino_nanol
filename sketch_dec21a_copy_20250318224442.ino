@@ -364,7 +364,7 @@ void controlNightLight(int currentHour){
   Serial.println(state);
   bool isDark = ldrValue < 30; // Adjust threshold based on actual readings
 
-  if ((currentHour >= 21 || currentHour < 6) && isDark){ 
+  if ((currentHour >= 21 || currentHour < 6) && isDark && isDark && nightLightActive){ 
     int brightness = 0; // Start at 0 brightness
     int fadeSpeed = 5; // Adjust fade speed (higher = faster)
     if(state == 0 ){
@@ -575,7 +575,6 @@ void editalarm(){
      digitalWrite(VIBRATION_PIN, HIGH);
      digitalWrite(HOU_BUTTON_LED,LOW);  
      alarmHour = (alarmHour + 1) % 24;
-     EEPROM.update(alarmHourAddr, alarmHour);
      delay(50);
      digitalWrite(VIBRATION_PIN, LOW);
      digitalWrite(HOU_BUTTON_LED,HIGH);
@@ -586,7 +585,6 @@ void editalarm(){
      digitalWrite(VIBRATION_PIN, HIGH);
      digitalWrite(MINUTE_BUTTON_LED,LOW);
      alarmMinute = (alarmMinute + 1) % 60;
-     EEPROM.update(alarmMinAddr, alarmMinute);
      delay(50);
      digitalWrite(VIBRATION_PIN, LOW);
      digitalWrite(MINUTE_BUTTON_LED,HIGH);
@@ -605,6 +603,8 @@ void editalarm(){
     delay(400);
     i = i + 1;
   }
+  EEPROM.update(alarmHourAddr, alarmHour); // Save alarm hour to EEPROM
+  EEPROM.update(alarmMinAddr, alarmMinute); // Store alarm time in EEPROM
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -823,7 +823,6 @@ void editreminder(){
      digitalWrite(VIBRATION_PIN, HIGH);
      digitalWrite(HOU_BUTTON_LED,LOW);  
      remindermonth = (remindermonth + 1) % 13;
-     EEPROM.update(remindermonthAddr, remindermonth);
      delay(50);
      digitalWrite(VIBRATION_PIN, LOW);
      digitalWrite(HOU_BUTTON_LED,HIGH);
@@ -834,7 +833,6 @@ void editreminder(){
      digitalWrite(VIBRATION_PIN, HIGH);
      digitalWrite(MINUTE_BUTTON_LED,LOW);
      reminderday = (reminderday + 1) % 32;
-     EEPROM.update(reminderdayAddr, reminderday);
      delay(50);
      digitalWrite(VIBRATION_PIN, LOW);
      digitalWrite(MINUTE_BUTTON_LED,HIGH);
@@ -853,7 +851,9 @@ void editreminder(){
     delay(400);
     i = i + 1;
   }
-
+  EEPROM.update(remindermonthAddr, remindermonth);
+  EEPROM.update(reminderdayAddr, reminderday);
+  
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Edit remin Time");
@@ -865,7 +865,6 @@ void editreminder(){
      digitalWrite(VIBRATION_PIN, HIGH);
      digitalWrite(HOU_BUTTON_LED,LOW);  
      reminderhour = (reminderhour + 1) % 24;
-     EEPROM.update(reminderhourAddr, reminderhour);
      delay(50);
      digitalWrite(VIBRATION_PIN, LOW);
      digitalWrite(HOU_BUTTON_LED,HIGH);
@@ -876,7 +875,6 @@ void editreminder(){
      digitalWrite(VIBRATION_PIN, HIGH);
      digitalWrite(MINUTE_BUTTON_LED,LOW);
      reminderminute = (reminderminute + 1) % 60;
-     EEPROM.update(reminderminAddr, reminderminute);
      delay(50);
      digitalWrite(VIBRATION_PIN, LOW);
      digitalWrite(MINUTE_BUTTON_LED,HIGH);
@@ -895,6 +893,8 @@ void editreminder(){
     delay(400);
     i = i + 1;
   }
+   EEPROM.update(reminderhourAddr, reminderhour);
+   EEPROM.update(reminderminuteAddr, reminderminute);
 
   lcd.clear();
   lcd.setCursor(0, 0);
