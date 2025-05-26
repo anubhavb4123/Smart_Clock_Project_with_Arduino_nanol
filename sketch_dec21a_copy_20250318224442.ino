@@ -302,7 +302,7 @@ void handleLowBattery(int batteryPercentage) {
     period = "PM";
   }
 
-  if (batteryPercentage < LOW_BATTERY_THRESHOLD && batteryPercentage > 5) {
+  if (batteryPercentage < LOW_BATTERY_THRESHOLD && batteryPercentage > 15) {
     for (int i = 0; i < 5; i++) {
       digitalWrite(A2, HIGH);
       digitalWrite(VIBRATION_PIN, HIGH);
