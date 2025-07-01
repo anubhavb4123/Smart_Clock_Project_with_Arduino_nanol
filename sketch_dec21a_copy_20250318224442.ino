@@ -127,7 +127,7 @@ void setup() {
   }
   if (!rtc.isrunning()) {
     lcd.print("RTC not running!");
-    rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Adjust to compile time
+    rtc.adjust(DateTime(F(_DATE), F(TIME_))); // Adjust to compile time
   }
   dht.begin();
   pinMode(BACKLIGHT_PIN, OUTPUT);
@@ -142,6 +142,9 @@ void loop() {
     lcd.print("Edit Alarm time");
     delay(1000);
     editalarm();
+  }
+  if(digitalRead(ALARM_HOU_PIN) == Low && digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW){
+    displaycurrentamp();
   }
   if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour button pressed
     setTimer();
@@ -203,7 +206,11 @@ void loop() {
     delay(1000);
     editalarm();
   }
-  if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour button pressed
+  if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW){
+    displaycurrentamp();
+  } 
+   // Only if Alarm hour and minut
+  if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW){ // Only if Alarm hour button pressed
     setTimer();
   }
   if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour and minute buttons
@@ -248,6 +255,9 @@ void loop() {
     delay(1000);
     editalarm();
   }
+  if(digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW){
+    displaycurrentamp();
+  }
   digitalWrite(BLINKING_LED,HIGH);
   if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour button pressed
     setTimer();
@@ -280,7 +290,7 @@ void loop() {
   delay(BATT_DISPLAY_DELAY);
   digitalWrite(BLINKING_LED,LOW);
 }
-// *Vibrate Once on Every Hour*
+// Vibrate Once on Every Hour
 void vibrateOnHour() {
   digitalWrite(VIBRATION_PIN, HIGH);
   digitalWrite(BUZZER,HIGH);
@@ -289,7 +299,7 @@ void vibrateOnHour() {
   delay(500);
   digitalWrite(VIBRATION_PIN, LOW);
 }
-// *Handle Low Battery LED Blinking*
+// Handle Low Battery LED Blinking
 void handleLowBattery(int batteryPercentage) {
   DateTime now = rtc.now();  // Make sure this is available from RTC
   int hour = now.hour();
@@ -356,7 +366,7 @@ void handleLowBattery(int batteryPercentage) {
     delay(1000);  // Add a delay so the loop isn’t too fast
   }
 }
-// *Control Night Light and Print LDR Value*
+// Control Night Light and Print LDR Value
 void controlNightLight(int currentHour){
   int ldrValue = analogRead(LDR_PIN);
   int state = digitalRead(NIGHT_LIGHT);  // Read the pin state
@@ -387,7 +397,7 @@ void controlNightLight(int currentHour){
   }
 }
 
-// *Adjust Backlight Based on LDR*
+// Adjust Backlight Based on LDR
 void adjustBacklight() {
   int ldrValue = analogRead(LDR_PIN);
   Serial.print("Backlight LDR Value: ");
@@ -549,11 +559,11 @@ void activateAlarm() { // Alarm is activated when the temperature exceeds 30 deg
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("ALARM STOPED");
-    alarmMinute = EEPROM.read(alarmMinAddr);
   }
   digitalWrite(RESET_BUTTON_LED,LOW);
   digitalWrite(HOU_BUTTON_LED,LOW);
   digitalWrite(MINUTE_BUTTON_LED,LOW);
+  alarmMinute = EEPROM.read(alarmMinAddr);
 }
 
 void editalarm(){
@@ -1073,4 +1083,25 @@ void ledFlash(){
     i = i+1;
     delay(100);
   }
+}
+
+void displaycurrentamp() {
+  int a1 = analogRead(A6);
+  int a2 = analogRead(A7);
+
+  const float Vref = 5.0; // Reference voltage (5V for USB or stable regulator)
+  const float shuntResistor = 0.99;
+
+  float voltageA1 = (a1 * Vref) / 1023.0;
+  float voltageA2 = (a2 * Vref) / 1023.0;
+
+  float voltageAcrossShunt = voltageA1 - voltageA2;
+  float currentAmp = voltageAcrossShunt / shuntResistor;
+
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Current:");
+  lcd.setCursor(0, 1);
+  lcd.print(currentAmp, 3);  // Show up to 3 decimal places
+  lcd.print(" A");
 }
