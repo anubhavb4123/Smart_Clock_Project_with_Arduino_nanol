@@ -4,25 +4,25 @@
 #include <DHT.h>
 #include <EEPROM.h>
 // Pin configuration
-#define DHTPIN 2            // Pin connected to DHT sensor
-#define DHTTYPE DHT11       // Change to DHT22 if using DHT22
-#define LDR_PIN A0          // LDR connected to analog pin A0
-#define BATTERY_PIN A1      // Battery voltage sensing pin
-#define BACKLIGHT_PIN 9     // LCD backlight connected to PWM pin 9
-#define VIBRATION_PIN 12    // Vibration motor connected to pin 12
-#define HOU_BUTTON_LED 8    // LED for low battery warning
-#define NIGHT_LIGHT 11      // Night light LED
-#define ALARM_RESET_PIN 3   // Reset button for stopping alarm
-#define ALARM_MIN_PIN 4     // Pin for setting minimum alarm time
-#define ALARM_HOU_PIN 5     // Pin for setting maximum alarm time
-#define BUZZER 6            // Buzzer connected to pin 6
-#define BLINKING_LED 13     // Use built-in LED or another available pin
+#define DHTPIN 2        // Pin connected to DHT sensor
+#define DHTTYPE DHT11   // Change to DHT22 if using DHT22
+#define LDR_PIN A0      // LDR connected to analog pin A0
+#define BATTERY_PIN A1  // Battery voltage sensing pin
+#define BACKLIGHT_PIN 9 // LCD backlight connected to PWM pin 9
+#define VIBRATION_PIN 12 // Vibration motor connected to pin 12
+#define HOU_BUTTON_LED 8  // LED for low battery warning
+#define NIGHT_LIGHT 11   // Night light LED
+#define ALARM_RESET_PIN 3 // Reset button for stopping alarm
+#define ALARM_MIN_PIN 4  // Pin for setting minimum alarm time
+#define ALARM_HOU_PIN 5 // Pin for setting maximum alarm time
+#define BUZZER 6  // Buzzer connected to pin 6
+#define BLINKING_LED 13  // Use built-in LED or another available pin
 #define RESET_BUTTON_LED 10 // Hour button LED
 #define MINUTE_BUTTON_LED 7 // Minute button LED
 // Constants
 #define MAX_BATTERY_VOLTAGE 4.2  // Max voltage (fully charged battery)
 #define MIN_BATTERY_VOLTAGE 3.0  // Min voltage (fully discharged)
-#define LOW_BATTERY_THRESHOLD 26// Battery % threshold for LED warning
+#define LOW_BATTERY_THRESHOLD 21 // Battery % threshold for LED warning
 #define TIME_DISPLAY_DELAY 5000  // Delay for time/date screen
 #define TEMP_DISPLAY_DELAY 3000  // Delay for temp/humidity screen
 #define BATT_DISPLAY_DELAY 2000  // Delay for battery volt and %
@@ -52,7 +52,6 @@ int setNightLightvalue = 0;
 int timerMilliseconds = 0;
 bool timerActive = false;
 bool alarmActive = false;
-bool nightLightActive = true;
 char daysOfTheWeek[7][12] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 // Function prototypes
 void displayStartupAnimation();
@@ -127,7 +126,7 @@ void setup() {
   }
   if (!rtc.isrunning()) {
     lcd.print("RTC not running!");
-    rtc.adjust(DateTime(F(_DATE), F(TIME_))); // Adjust to compile time
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Adjust to compile time
   }
   dht.begin();
   pinMode(BACKLIGHT_PIN, OUTPUT);
@@ -142,9 +141,6 @@ void loop() {
     lcd.print("Edit Alarm time");
     delay(1000);
     editalarm();
-  }
-  if(digitalRead(ALARM_HOU_PIN) == Low && digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW){
-    displaycurrentamp();
   }
   if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour button pressed
     setTimer();
@@ -206,11 +202,7 @@ void loop() {
     delay(1000);
     editalarm();
   }
-  if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW){
-    displaycurrentamp();
-  } 
-   // Only if Alarm hour and minut
-  if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW){ // Only if Alarm hour button pressed
+  if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour button pressed
     setTimer();
   }
   if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour and minute buttons
@@ -255,9 +247,6 @@ void loop() {
     delay(1000);
     editalarm();
   }
-  if(digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(ALARM_RESET_PIN) == LOW){
-    displaycurrentamp();
-  }
   digitalWrite(BLINKING_LED,HIGH);
   if (digitalRead(ALARM_HOU_PIN) == LOW && digitalRead(ALARM_RESET_PIN) != LOW && digitalRead(ALARM_MIN_PIN) != LOW) { // Only if Alarm hour button pressed
     setTimer();
@@ -290,7 +279,7 @@ void loop() {
   delay(BATT_DISPLAY_DELAY);
   digitalWrite(BLINKING_LED,LOW);
 }
-// Vibrate Once on Every Hour
+// *Vibrate Once on Every Hour*
 void vibrateOnHour() {
   digitalWrite(VIBRATION_PIN, HIGH);
   digitalWrite(BUZZER,HIGH);
@@ -299,7 +288,7 @@ void vibrateOnHour() {
   delay(500);
   digitalWrite(VIBRATION_PIN, LOW);
 }
-// Handle Low Battery LED Blinking
+// *Handle Low Battery LED Blinking*
 void handleLowBattery(int batteryPercentage) {
   DateTime now = rtc.now();  // Make sure this is available from RTC
   int hour = now.hour();
@@ -312,7 +301,7 @@ void handleLowBattery(int batteryPercentage) {
     period = "PM";
   }
 
-  if (batteryPercentage < LOW_BATTERY_THRESHOLD && batteryPercentage > 15) {
+  if (batteryPercentage < LOW_BATTERY_THRESHOLD && batteryPercentage > 5) {
     for (int i = 0; i < 5; i++) {
       digitalWrite(A2, HIGH);
       digitalWrite(VIBRATION_PIN, HIGH);
@@ -326,7 +315,7 @@ void handleLowBattery(int batteryPercentage) {
     digitalWrite(A2, LOW);
   }
 
-  while (batteryPercentage <= 15) {
+  while (batteryPercentage <= 5) {
     float batteryVoltage = analogRead(BATTERY_PIN) * (5.0 / 1023.0) * 2;
     batteryPercentage = map(batteryVoltage * 1000, MIN_BATTERY_VOLTAGE * 1000, MAX_BATTERY_VOLTAGE * 1000, 0, 100);
     batteryPercentage = constrain(batteryPercentage, 0, 100);
@@ -366,14 +355,14 @@ void handleLowBattery(int batteryPercentage) {
     delay(1000);  // Add a delay so the loop isn’t too fast
   }
 }
-// Control Night Light and Print LDR Value
+// *Control Night Light and Print LDR Value*
 void controlNightLight(int currentHour){
   int ldrValue = analogRead(LDR_PIN);
   int state = digitalRead(NIGHT_LIGHT);  // Read the pin state
   Serial.println(state);
   bool isDark = ldrValue < 30; // Adjust threshold based on actual readings
 
-  if ((currentHour >= 21 || currentHour < 6) && isDark && nightLightActive){
+  if ((currentHour >= 21 || currentHour < 6) && isDark){
     int brightness = 0; // Start at 0 brightness
     int fadeSpeed = 5; // Adjust fade speed (higher = faster)
     if(state == 0 ){
@@ -385,19 +374,19 @@ void controlNightLight(int currentHour){
     analogWrite(NIGHT_LIGHT, setNightLightvalue);
   }
   else {
-    if(state == 1 && nightLightActive){ // true 
+    if(state == 1 ){
      int fadeSpeed = 5; // Adjust fade speed (higher = faster)
      int brightness1 = 255; // Start at full brightness
-     for (brightness1 = 255; brightness1 >= 0; brightness1 -= fadeSpeed) {
+    for (brightness1 = 255; brightness1 >= 0; brightness1 -= fadeSpeed) {
        analogWrite(NIGHT_LIGHT, brightness1); // Set LED brightness
        delay(50); // Delay to control fade speed
       }
-      digitalWrite(NIGHT_LIGHT, LOW);  // Turn off Night Light
     }
+   digitalWrite(NIGHT_LIGHT, LOW);  // Turn off Night Light
   }
 }
 
-// Adjust Backlight Based on LDR
+// *Adjust Backlight Based on LDR*
 void adjustBacklight() {
   int ldrValue = analogRead(LDR_PIN);
   Serial.print("Backlight LDR Value: ");
@@ -559,11 +548,12 @@ void activateAlarm() { // Alarm is activated when the temperature exceeds 30 deg
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("ALARM STOPED");
+    alarmMinute = EEPROM.read(alarmMinAddr);
   }
   digitalWrite(RESET_BUTTON_LED,LOW);
   digitalWrite(HOU_BUTTON_LED,LOW);
   digitalWrite(MINUTE_BUTTON_LED,LOW);
-  alarmMinute = EEPROM.read(alarmMinAddr);
+  stopAlarm();
 }
 
 void editalarm(){
@@ -587,6 +577,7 @@ void editalarm(){
     digitalWrite(VIBRATION_PIN, HIGH);
     digitalWrite(HOU_BUTTON_LED,LOW);
     alarmHour = (alarmHour + 1) % 24;
+    EEPROM.update(alarmHourAddr, alarmHour);
     delay(50);
     digitalWrite(VIBRATION_PIN, LOW);
     digitalWrite(HOU_BUTTON_LED,HIGH);
@@ -597,6 +588,7 @@ void editalarm(){
     digitalWrite(VIBRATION_PIN, HIGH);
     digitalWrite(MINUTE_BUTTON_LED,LOW);
     alarmMinute = (alarmMinute + 1) % 60;
+    EEPROM.update(alarmMinAddr, alarmMinute);
     delay(50);
     digitalWrite(VIBRATION_PIN, LOW);
     digitalWrite(MINUTE_BUTTON_LED,HIGH);
@@ -615,8 +607,6 @@ void editalarm(){
     delay(400);
     i = i + 1;
   }
-  EEPROM.update(alarmHourAddr, alarmHour); // Save alarm hour to EEPROM
-  EEPROM.update(alarmMinAddr, alarmMinute); // Store alarm time in EEPROM
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -835,6 +825,7 @@ void editreminder(){
     digitalWrite(VIBRATION_PIN, HIGH);
     digitalWrite(HOU_BUTTON_LED,LOW);
     remindermonth = (remindermonth + 1) % 13;
+    EEPROM.update(remindermonthAddr, remindermonth);
     delay(50);
     digitalWrite(VIBRATION_PIN, LOW);
     digitalWrite(HOU_BUTTON_LED,HIGH);
@@ -845,6 +836,7 @@ void editreminder(){
     digitalWrite(VIBRATION_PIN, HIGH);
     digitalWrite(MINUTE_BUTTON_LED,LOW);
     reminderday = (reminderday + 1) % 32;
+    EEPROM.update(reminderdayAddr, reminderday);
     delay(50);
     digitalWrite(VIBRATION_PIN, LOW);
     digitalWrite(MINUTE_BUTTON_LED,HIGH);
@@ -863,8 +855,6 @@ void editreminder(){
     delay(400);
     i = i + 1;
   }
-  EEPROM.update(remindermonthAddr, remindermonth);
-  EEPROM.update(reminderdayAddr, reminderday);
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -877,6 +867,7 @@ void editreminder(){
     digitalWrite(VIBRATION_PIN, HIGH);
     digitalWrite(HOU_BUTTON_LED,LOW);
     reminderhour = (reminderhour + 1) % 24;
+    EEPROM.update(reminderhourAddr, reminderhour);
     delay(50);
     digitalWrite(VIBRATION_PIN, LOW);
     digitalWrite(HOU_BUTTON_LED,HIGH);
@@ -887,6 +878,7 @@ void editreminder(){
     digitalWrite(VIBRATION_PIN, HIGH);
     digitalWrite(MINUTE_BUTTON_LED,LOW);
     reminderminute = (reminderminute + 1) % 60;
+    EEPROM.update(reminderminAddr, reminderminute);
     delay(50);
     digitalWrite(VIBRATION_PIN, LOW);
     digitalWrite(MINUTE_BUTTON_LED,HIGH);
@@ -905,8 +897,6 @@ void editreminder(){
     delay(400);
     i = i + 1;
   }
-  EEPROM.update(reminderhourAddr, reminderhour);
-  EEPROM.update(reminderminuteAddr, reminderminute);
 
   lcd.clear();
   lcd.setCursor(0, 0);
@@ -950,24 +940,24 @@ void setNightLight(){
   while (digitalRead(ALARM_RESET_PIN) != LOW && i < 20) { // Wait for reset button press
     digitalWrite(BLINKING_LED, HIGH);
     if (digitalRead(ALARM_HOU_PIN) == LOW) { // If hour button is pressed
-     digitalWrite(VIBRATION_PIN, HIGH);
-     digitalWrite(HOU_BUTTON_LED,LOW);
-     setNightLightvalue = abs((setNightLightvalue + 10)) % 255;
-     EEPROM.update(setNightLightvalueAddr, setNightLightvalue);
-     delay(50);
-     digitalWrite(VIBRATION_PIN, LOW);
-     digitalWrite(HOU_BUTTON_LED,HIGH);
-     i = 0;
+    digitalWrite(VIBRATION_PIN, HIGH);
+    digitalWrite(HOU_BUTTON_LED,LOW);
+    setNightLightvalue = abs((setNightLightvalue + 10)) % 255;
+    EEPROM.update(setNightLightvalueAddr, setNightLightvalue);
+    delay(50);
+    digitalWrite(VIBRATION_PIN, LOW);
+    digitalWrite(HOU_BUTTON_LED,HIGH);
+    i = 0;
     }
 
    if (digitalRead(ALARM_MIN_PIN) == LOW) { // If minute button is pressed
-     digitalWrite(VIBRATION_PIN, HIGH);
-     digitalWrite(MINUTE_BUTTON_LED,LOW);
-     setNightLightvalue = abs((setNightLightvalue - 10)) % 255;
-     EEPROM.update(setNightLightvalueAddr, setNightLightvalue);
-     delay(50);
-     digitalWrite(VIBRATION_PIN, LOW);
-     digitalWrite(MINUTE_BUTTON_LED,HIGH);
+    digitalWrite(VIBRATION_PIN, HIGH);
+    digitalWrite(MINUTE_BUTTON_LED,LOW);
+    setNightLightvalue = abs((setNightLightvalue - 10)) % 255;
+    EEPROM.update(setNightLightvalueAddr, setNightLightvalue);
+    delay(50);
+    digitalWrite(VIBRATION_PIN, LOW);
+    digitalWrite(MINUTE_BUTTON_LED,HIGH);
     i = 0;
     }
 
@@ -1022,86 +1012,13 @@ void displayLDRvalue(){
 
 void ledFlash(){
   int i = 0;
-  while(digitalRead(ALARM_RESET_PIN) != LOW && i < 120) { // Wait for reset button press
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("R TO LED FLASHING");
-    lcd.setCursor(0, 1);
-    lcd.print("L TO LED ON/OFF");
-    digitalWrite(RESET_BUTTON_LED,HIGH);
-    digitalWrite(HOU_BUTTON_LED, HIGH);
-    digitalWrite(MINUTE_BUTTON_LED, HIGH);
-    delay(1000);
-    if(digitalRead(ALARM_HOU_PIN) == LOW){
-      int i = 0;
-      digitalWrite(RESET_BUTTON_LED,HIGH);
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("LED FLASHING");
-      delay(1000);
-      while(digitalRead(ALARM_RESET_PIN) != LOW && i < 240) { 
-       lcd.setCursor(0, 1);
-       lcd.print(i);
-       digitalWrite(NIGHT_LIGHT, HIGH);  // Turn the LED on
-       delay(100);              // Wait for 500ms
-       digitalWrite(NIGHT_LIGHT, LOW);   // Turn the LED off
-       delay(100);
-       i=i+1;
-      }
-      delay(1000);
-    }
-    if(digitalRead(ALARM_MIN_PIN) == LOW){
-      int i = 0;
-      lcd.clear();
-      lcd.setCursor(0, 0);
-      lcd.print("LED ON/OFF");
-      delay(1000);
-      while(digitalRead(ALARM_RESET_PIN) != LOW && i < 240){   
-       if(digitalRead(NIGHT_LIGHT) == LOW && digitalRead(ALARM_MIN_PIN) == LOW){
-         digitalWrite(NIGHT_LIGHT, HIGH);  // Turn the LED on
-         lcd.clear();
-         lcd.setCursor(0, 0);
-         lcd.print("LED ON");
-         nightLightActive = false;
-         delay(1000);
-        }    
-       if(digitalRead(ALARM_MIN_PIN) == LOW && digitalRead(NIGHT_LIGHT) == HIGH){
-         digitalWrite(NIGHT_LIGHT, LOW);
-         lcd.clear();
-         lcd.setCursor(0, 0);
-         lcd.print("LED OFF");
-         nightLightActive = true;
-         delay(1000);  // Turn the LED off
-        }
-       i=i+1;
-       delay(100);
-      }
-    }
-    digitalWrite(RESET_BUTTON_LED,LOW);
-    digitalWrite(HOU_BUTTON_LED,LOW);
-    digitalWrite(MINUTE_BUTTON_LED,LOW);
-    i = i+1;
-    delay(100);
-  }
+  digitalWrite(RESET_BUTTON_LED,HIGH);
+  while(digitalRead(ALARM_RESET_PIN) != LOW && i < 120) {
+   digitalWrite(NIGHT_LIGHT, HIGH);  // Turn the LED on
+   delay(100);              // Wait for 500ms
+   digitalWrite(NIGHT_LIGHT, LOW);   // Turn the LED off
+  delay(100);
+  i=i+1;
 }
-
-void displaycurrentamp() {
-  int a1 = analogRead(A6);
-  int a2 = analogRead(A7);
-
-  const float Vref = 5.0; // Reference voltage (5V for USB or stable regulator)
-  const float shuntResistor = 0.99;
-
-  float voltageA1 = (a1 * Vref) / 1023.0;
-  float voltageA2 = (a2 * Vref) / 1023.0;
-
-  float voltageAcrossShunt = voltageA1 - voltageA2;
-  float currentAmp = voltageAcrossShunt / shuntResistor;
-
-  lcd.clear();
-  lcd.setCursor(0, 0);
-  lcd.print("Current:");
-  lcd.setCursor(0, 1);
-  lcd.print(currentAmp, 3);  // Show up to 3 decimal places
-  lcd.print(" A");
+digitalWrite(RESET_BUTTON_LED,LOW);
 }
