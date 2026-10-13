@@ -152,3 +152,4 @@ Shows custom welcome message ("Hello! Welcome Back :)").
 
 ## Pin Configuration
 Refer to the pin mappings in the code comments at the top of the `.ino` file.
+
